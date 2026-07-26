@@ -375,6 +375,60 @@ body {
   font-family: 'Courier New', monospace; font-weight: 700; color: var(--primary-dark);
 }
 .import-actions { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+
+/* 天气卡片 */
+.weather-card {
+  display: flex; align-items: center; gap: 1rem;
+  background: linear-gradient(135deg, #e0f4ff 0%, #fff 100%);
+  border: 3px solid var(--border-dark); border-radius: 16px;
+  padding: 0.9rem 1.3rem; margin-bottom: 1.2rem;
+  box-shadow: var(--shadow-hard); position: relative; z-index: 2;
+  flex-wrap: wrap;
+}
+.weather-icon { font-size: 2.2rem; line-height: 1; }
+.weather-info { flex: 1; min-width: 140px; }
+.weather-temp { font-size: 1.4rem; font-weight: 900; color: var(--text-main); }
+.weather-desc { font-size: 0.9rem; color: var(--text-soft); font-weight: 600; }
+.weather-rain { font-size: 0.85rem; color: #4a90e2; font-weight: 700; margin-top: 2px; }
+.weather-loading { font-size: 0.9rem; color: var(--text-soft); padding: 0.5rem 0; }
+
+/* AI 推荐面板 */
+.ai-panel {
+  background: linear-gradient(135deg, #fff8ec 0%, #fff 100%);
+  border: 4px solid var(--border-dark); border-radius: 20px;
+  padding: 1.5rem; margin: 2rem 0; box-shadow: var(--shadow-hard);
+  position: relative;
+}
+.ai-panel::before {
+  content: '🤖'; position: absolute; top: -16px; left: 20px;
+  background: var(--bg-cream); padding: 0 8px; font-size: 1.5rem;
+}
+.ai-panel h3 { font-size: 1.3rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+.ai-panel-desc { font-size: 0.9rem; color: var(--text-soft); margin-bottom: 1rem; }
+.ai-input-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.ai-input {
+  flex: 1; min-width: 200px;
+  border: 2px solid var(--border-dark); border-radius: 12px;
+  padding: 0.6rem 0.9rem; font-family: inherit; font-size: 1rem;
+  background: #fff; color: var(--text-main);
+}
+.ai-input:focus { outline: none; box-shadow: 2px 2px 0 var(--border-dark); }
+.ai-suggestions { margin-top: 0.8rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ai-suggestion-chip {
+  background: rgba(78, 205, 196, 0.15); border: 1.5px solid var(--secondary);
+  color: var(--secondary-dark); padding: 0.3rem 0.8rem;
+  border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+}
+.ai-suggestion-chip:hover { background: var(--secondary); color: white; transform: translateY(-1px); }
+.ai-result {
+  margin-top: 1rem; padding: 1rem; background: #fff;
+  border: 2px solid var(--border-dark); border-radius: 14px;
+  box-shadow: 2px 2px 0 var(--border-dark);
+}
+.ai-result-title { font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main); }
+.ai-result-detail { font-size: 0.92rem; color: var(--text-soft); line-height: 1.6; margin-bottom: 0.8rem; }
+.ai-result-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .deco-cloud {
   position: fixed; font-size: 2.5rem; opacity: 0.4;
   pointer-events: none; animation: float 8s ease-in-out infinite;
@@ -404,6 +458,11 @@ body {
   .timeline-address { flex-direction: column; gap: 0.4rem; }
   .timeline-address-input { min-width: 0; font-size: 0.9rem; }
   .timeline-go-btn { justify-content: center; }
+  .weather-card { padding: 0.7rem 1rem; gap: 0.7rem; }
+  .weather-icon { font-size: 1.8rem; }
+  .weather-temp { font-size: 1.2rem; }
+  .ai-input-row { flex-direction: column; }
+  .ai-input { min-width: 0; }
   .navbar { padding: 0.7rem 0.8rem; }
   .navbar-brand { font-size: 1.15rem; gap: 0.35rem; }
   .navbar-brand .logo { width: 34px; height: 34px; font-size: 1.1rem; }
@@ -446,6 +505,8 @@ const CITIES = {
     name: '东京',
     emoji: '🗼',
     country: '日本',
+    lat: 35.6762,
+    lon: 139.6503,
     dates: ['2026-07-31', '2026-08-01', '2026-08-02', '2026-08-03'],
     dateLabels: {
       '2026-07-31': { day: 'Day 1', weekday: '周五', title: '抵达东京' },
@@ -454,6 +515,44 @@ const CITIES = {
       '2026-08-03': { day: 'Day 4', weekday: '周一', title: '告别东京' }
     }
   }
+};
+
+// 东京景点坐标库（用于 AI 推荐的距离计算）
+const TOKYO_SPOTS = {
+  "浅草寺": {"lat": 35.7148, "lon": 139.7967, "type": "景点"},
+  "晴空塔": {"lat": 35.7101, "lon": 139.8107, "type": "景点"},
+  "东京塔": {"lat": 35.6586, "lon": 139.7454, "type": "景点"},
+  "东京都厅观景台": {"lat": 35.6896, "lon": 139.6917, "type": "景点"},
+  "涩谷十字路口": {"lat": 35.6595, "lon": 139.7004, "type": "景点"},
+  "涩谷sky": {"lat": 35.6578, "lon": 139.7034, "type": "景点"},
+  "shibuya sakura stage": {"lat": 35.6563, "lon": 139.7036, "type": "景点"},
+  "新宿御苑": {"lat": 35.6852, "lon": 139.7100, "type": "景点"},
+  "明治神宫": {"lat": 35.6764, "lon": 139.6993, "type": "景点"},
+  "原宿竹下通": {"lat": 35.6707, "lon": 139.7046, "type": "购物"},
+  "表参道": {"lat": 35.6651, "lon": 139.7121, "type": "购物"},
+  "表参道kiddy land": {"lat": 35.6645, "lon": 139.7133, "type": "购物"},
+  "银座": {"lat": 35.6719, "lon": 139.7636, "type": "购物"},
+  "银座六丁目": {"lat": 35.6693, "lon": 139.7626, "type": "购物"},
+  "秋叶原": {"lat": 35.6987, "lon": 139.7732, "type": "购物"},
+  "代官山": {"lat": 35.6510, "lon": 139.6967, "type": "景点"},
+  "代官山旧朝仓家住宅": {"lat": 35.6536, "lon": 139.6955, "type": "景点"},
+  "上野公园": {"lat": 35.7156, "lon": 139.7730, "type": "景点"},
+  "上野动物园": {"lat": 35.7164, "lon": 139.7715, "type": "景点"},
+  "台场海滨公园": {"lat": 35.6239, "lon": 139.7738, "type": "景点"},
+  "海滨公园": {"lat": 35.6239, "lon": 139.7738, "type": "景点"},
+  "高达基地": {"lat": 35.6244, "lon": 139.7769, "type": "景点"},
+  "teamlab planets": {"lat": 35.6486, "lon": 139.7902, "type": "景点"},
+  "丰洲市场": {"lat": 35.6554, "lon": 139.7967, "type": "美食"},
+  "筑地市场": {"lat": 35.6654, "lon": 139.7707, "type": "美食"},
+  "六本木hills": {"lat": 35.6604, "lon": 139.7298, "type": "购物"},
+  "东京站": {"lat": 35.6812, "lon": 139.7671, "type": "交通"},
+  "新宿站": {"lat": 35.6896, "lon": 139.7004, "type": "交通"},
+  "涩谷站": {"lat": 35.6580, "lon": 139.7016, "type": "交通"},
+  "池袋站": {"lat": 35.7295, "lon": 139.7109, "type": "交通"},
+  "皇居": {"lat": 35.6852, "lon": 139.7528, "type": "景点"},
+  "增上寺": {"lat": 35.6575, "lon": 139.7455, "type": "景点"},
+  "东京迪士尼": {"lat": 35.6329, "lon": 139.8804, "type": "景点"},
+  "三鹰之森吉卜力美术馆": {"lat": 35.6961, "lon": 139.5704, "type": "景点"}
 };
 
 // ============================================
@@ -627,6 +726,24 @@ function renderCity(cityKey) {
     html += '</div></div>';
   });
   html += '</div>';
+
+  // AI 推荐面板
+  html += '<div class="ai-panel">';
+  html += '<h3>🤖 AI 智能行程推荐</h3>';
+  html += '<p class="ai-panel-desc">输入想去的景点或餐厅，AI 会根据你已有行程的时间空档和地理距离，推荐最佳到访时间。</p>';
+  html += '<div class="ai-input-row">';
+  html += '<input type="text" class="ai-input" id="aiInput" placeholder="如：浅草寺、银座、涩谷sky..." onkeydown="if(event.key===\'Enter\') aiRecommend(\'' + cityKey + '\')">';
+  html += '<button class="btn" onclick="aiRecommend(\'' + cityKey + '\')">✨ 推荐</button>';
+  html += '</div>';
+  html += '<div class="ai-suggestions">';
+  html += '<span style="font-size:0.85rem;color:var(--text-soft);align-self:center;">热门：</span>';
+  ['浅草寺','涩谷sky','银座','秋叶原','东京塔','台场海滨公园','明治神宫','teamlab planets'].forEach(function(spot) {
+    html += '<span class="ai-suggestion-chip" onclick="document.getElementById(\'aiInput\').value=\'' + spot + '\';aiRecommend(\'' + cityKey + '\')">' + spot + '</span>';
+  });
+  html += '</div>';
+  html += '<div id="aiResult"></div>';
+  html += '</div>';
+
   app.innerHTML = html;
 }
 
@@ -646,6 +763,9 @@ function renderDay(cityKey, dateStr) {
   html += '<button class="btn" onclick="clearItinerary(\'' + storageKey + '\')">🗑️ 清空行程</button>';
   html += '</div></div>';
 
+  // 天气卡片占位
+  html += '<div id="weatherCard" class="weather-card"><div class="weather-loading">🌡️ 正在获取天气预报...</div></div>';
+
   html += '<div class="import-section" id="importSection" style="display:none;">';
   html += '<h3>✍️ 导入行程文本</h3>';
   html += '<textarea id="importText" placeholder="在此粘贴你的行程文本，支持以下格式：\n\n09:00 早餐 - 酒店附近便利店 [美食]\n10:30-12:00 浅草寺 [景点] 参观东京最古老的寺庙\n12:30 午餐：雷门附近寿司店 [美食]\n14:00 涩谷十字路口 [景点] 游览著名的十字路口\n15:30 购物：涩谷109 [购物]\n18:00 晚餐 - 居酒屋 [美食]\n20:00 新宿夜景 [景点] 都厅免费观景台\n\n每行一个行程项，以时间开头。标签用 [方括号] 标注。\n时间格式：HH:MM，可用 - 连接结束时间。\n标题与描述可用 - 或 ：分隔。"></textarea>';
@@ -663,6 +783,8 @@ function renderDay(cityKey, dateStr) {
 
   // 渲染时间线
   renderTimeline(storageKey);
+  // 异步加载天气
+  loadWeather(cityKey, dateStr);
 }
 
 function renderTimeline(storageKey) {
@@ -885,6 +1007,251 @@ function importItinerary(storageKey) {
   renderTimeline(storageKey);
   document.getElementById('importSection').style.display = 'none';
   showToast('行程已保存！🎉 共 ' + items.length + ' 项');
+}
+
+// ============================================
+// 天气预报（Open-Meteo 免费API）
+// ============================================
+function weatherCodeToInfo(code) {
+  // WMO weather code 映射
+  if (code === 0) return { icon: '☀️', desc: '晴' };
+  if (code <= 2) return { icon: '🌤️', desc: '少云' };
+  if (code === 3) return { icon: '☁️', desc: '阴' };
+  if (code <= 48) return { icon: '🌫️', desc: '雾' };
+  if (code <= 57) return { icon: '🌦️', desc: '小雨' };
+  if (code <= 67) return { icon: '🌧️', desc: '雨' };
+  if (code <= 77) return { icon: '🌨️', desc: '雪' };
+  if (code <= 82) return { icon: ' showers ', desc: '阵雨' };
+  if (code <= 86) return { icon: '🌨️', desc: '阵雪' };
+  if (code >= 95) return { icon: '⛈️', desc: '雷阵雨' };
+  return { icon: '🌡️', desc: '未知' };
+}
+
+function loadWeather(cityKey, dateStr) {
+  const card = document.getElementById('weatherCard');
+  if (!card) return;
+  const city = CITIES[cityKey];
+  if (!city || !city.lat) { card.style.display = 'none'; return; }
+
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + city.lat + '&longitude=' + city.lon
+    + '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode'
+    + '&timezone=Asia/Tokyo&start_date=' + dateStr + '&end_date=' + dateStr;
+
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      const daily = data.daily || {};
+      const times = daily.time || [];
+      const idx = times.indexOf(dateStr);
+      if (idx < 0) {
+        card.innerHTML = '<div class="weather-loading">📅 天气数据暂未可用（仅支持未来16天）</div>';
+        return;
+      }
+      const tMax = daily.temperature_2m_max[idx];
+      const tMin = daily.temperature_2m_min[idx];
+      const rain = daily.precipitation_probability_max[idx];
+      const code = daily.weathercode[idx];
+      const wi = weatherCodeToInfo(code);
+      card.innerHTML = '<div class="weather-icon">' + wi.icon + '</div>'
+        + '<div class="weather-info">'
+        + '<div class="weather-temp">' + Math.round(tMax) + '° / ' + Math.round(tMin) + '°C</div>'
+        + '<div class="weather-desc">' + wi.desc + ' · ' + city.name + '</div>'
+        + '<div class="weather-rain">💧 降水概率 ' + rain + '%</div>'
+        + '</div>';
+    })
+    .catch(function(err) {
+      card.innerHTML = '<div class="weather-loading">⚠️ 天气加载失败，请稍后重试</div>';
+    });
+}
+
+// ============================================
+// AI 智能行程推荐（本地算法版）
+// ============================================
+// Haversine 距离公式：计算两个经纬度之间的直线距离（公里）
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+    + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+    * Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// 在景点库中查找匹配（支持模糊匹配）
+function findSpot(query) {
+  const q = query.trim().toLowerCase();
+  // 精确匹配
+  for (const name in TOKYO_SPOTS) {
+    if (name.toLowerCase() === q) return { name: name, info: TOKYO_SPOTS[name] };
+  }
+  // 包含匹配
+  for (const name in TOKYO_SPOTS) {
+    if (name.toLowerCase().includes(q) || q.includes(name.toLowerCase())) {
+      return { name: name, info: TOKYO_SPOTS[name] };
+    }
+  }
+  return null;
+}
+
+// 将时间字符串 "HH:MM" 转为分钟数
+function timeToMinutes(t) {
+  const parts = t.split(':');
+  return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+
+// 分析某一天的行程空档
+function analyzeDaySlots(storageKey) {
+  const stored = localStorage.getItem(storageKey);
+  let items = [];
+  if (stored) { try { items = JSON.parse(stored); } catch(e) {} }
+  items.sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
+
+  // 默认活动时段 09:00 - 22:00
+  const dayStart = 9 * 60, dayEnd = 22 * 60;
+  const slots = [];
+  let cursor = dayStart;
+  items.forEach(function(item) {
+    const start = timeToMinutes(item.time);
+    const end = item.endTime ? timeToMinutes(item.endTime) : start + 60; // 默认1小时
+    if (start - cursor >= 60) {  // 至少1小时空档才算
+      slots.push({ start: cursor, end: start });
+    }
+    cursor = Math.max(cursor, end);
+  });
+  if (dayEnd - cursor >= 60) slots.push({ start: cursor, end: dayEnd });
+
+  // 计算每个空档的中心点坐标（用该天最后一个有地址的景点作为参考）
+  const addresses = getAddresses(storageKey);
+  let lastCoord = null;
+  // 也从已有行程的标题里找坐标
+  for (let i = items.length - 1; i >= 0; i--) {
+    const addr = addresses[i];
+    if (addr) {
+      const spot = findSpot(addr) || findSpot(items[i].title);
+      if (spot) { lastCoord = { lat: spot.info.lat, lon: spot.info.lon }; break; }
+    }
+    const spot = findSpot(items[i].title);
+    if (spot) { lastCoord = { lat: spot.info.lat, lon: spot.info.lon }; break; }
+  }
+
+  return { items: items, slots: slots, lastCoord: lastCoord };
+}
+
+// AI 推荐：遍历所有日期，找最佳空档
+function aiRecommend(cityKey) {
+  const input = document.getElementById('aiInput');
+  const resultDiv = document.getElementById('aiResult');
+  const query = input.value.trim();
+  if (!query) { showToast('请输入景点名', 'error'); return; }
+
+  const spot = findSpot(query);
+  if (!spot) {
+    resultDiv.innerHTML = '<div class="ai-result"><div class="ai-result-title">😕 未找到该地点</div>'
+      + '<div class="ai-result-detail">景点库中暂无「' + escapeHtml(query) + '」的坐标数据。<br>你可以直接到对应日期手动添加，或尝试输入：浅草寺、涩谷sky、银座、东京塔等热门景点。</div></div>';
+    return;
+  }
+
+  const city = CITIES[cityKey];
+  const candidates = [];
+
+  city.dates.forEach(function(dateStr) {
+    const storageKey = cityKey + '-' + dateStr;
+    const analysis = analyzeDaySlots(storageKey);
+    const info = city.dateLabels[dateStr];
+
+    analysis.slots.forEach(function(slot) {
+      // 推荐时间：空档开始后30分钟（留缓冲）
+      const recMin = slot.start + 30;
+      const recTime = String(Math.floor(recMin / 60)).padStart(2, '0') + ':' + String(recMin % 60).padStart(2, '0');
+      const slotLen = slot.end - slot.start;
+
+      // 距离评分：与该天最后一个景点的距离
+      let distScore = 0;
+      let distText = '当天首个景点';
+      if (analysis.lastCoord) {
+        const dist = haversine(analysis.lastCoord.lat, analysis.lastCoord.lon, spot.info.lat, spot.info.lon);
+        distText = '距上一景点 ' + dist.toFixed(1) + ' 公里';
+        // 距离越近分数越高（5公里内满分，每增加5公里扣1分）
+        distScore = Math.max(0, 5 - dist / 5);
+      }
+
+      // 空档长度评分：空档越长越适合（2小时以上满分）
+      const slotScore = Math.min(5, slotLen / 120 * 5);
+
+      // 总分
+      const totalScore = distScore * 0.6 + slotScore * 0.4;
+
+      candidates.push({
+        dateStr: dateStr,
+        dayLabel: info.day,
+        weekday: info.weekday,
+        title: info.title,
+        time: recTime,
+        slotLen: slotLen,
+        distText: distText,
+        distScore: distScore,
+        slotScore: slotScore,
+        totalScore: totalScore,
+        itemCount: analysis.items.length
+      });
+    });
+  });
+
+  if (candidates.length === 0) {
+    resultDiv.innerHTML = '<div class="ai-result"><div class="ai-result-title">📅 行程已满</div>'
+      + '<div class="ai-result-detail">所有日期的 09:00-22:00 时段都排满了。建议先调整现有行程留出空档，或手动添加到某一天。</div></div>';
+    return;
+  }
+
+  // 按总分排序
+  candidates.sort(function(a, b) { return b.totalScore - a.totalScore; });
+  const best = candidates[0];
+
+  // 显示推荐结果
+  const slotHours = (best.slotLen / 60).toFixed(1);
+  let detailHtml = '<div class="ai-result-detail">';
+  detailHtml += '📍 <strong>' + escapeHtml(spot.name) + '</strong>（' + spot.info.type + '）<br>';
+  detailHtml += '🗓️ 推荐日期：<strong>' + formatDate(best.dateStr) + ' ' + best.dayLabel + ' ' + best.weekday + '</strong><br>';
+  detailHtml += '⏰ 推荐时间：<strong>' + best.time + '</strong>（该时段空档 ' + slotHours + ' 小时）<br>';
+  detailHtml += '🚶 ' + best.distText + '<br>';
+  detailHtml += '📊 当天已有 ' + best.itemCount + ' 个行程项<br>';
+  // 推荐理由
+  let reasons = [];
+  if (best.distScore >= 4) reasons.push('地理位置接近你当天其他行程');
+  if (best.slotScore >= 4) reasons.push('该时段有充足的空档时间');
+  if (best.itemCount === 0) reasons.push('当天暂无行程，适合作为起点');
+  if (reasons.length === 0) reasons.push('综合时间和距离的最佳选择');
+  detailHtml += '💡 <strong>推荐理由：</strong>' + reasons.join('；');
+  detailHtml += '</div>';
+
+  resultDiv.innerHTML = '<div class="ai-result">'
+    + '<div class="ai-result-title">✨ AI 推荐结果</div>'
+    + detailHtml
+    + '<div class="ai-result-actions">'
+    + '<button class="btn" onclick="acceptAiRecommend(\'' + cityKey + '\', \'' + best.dateStr + '\', \'' + best.time + '\', \'' + spot.name.replace(/'/g, "\\'") + '\', \'' + spot.info.type + '\')">✅ 接受并添加到行程</button>'
+    + '<button class="btn btn-secondary" onclick="document.getElementById(\'aiResult\').innerHTML=\'\'">❌ 取消</button>'
+    + '</div></div>';
+}
+
+// 接受 AI 推荐，自动添加到对应日期
+function acceptAiRecommend(cityKey, dateStr, time, spotName, spotType) {
+  const storageKey = cityKey + '-' + dateStr;
+  const stored = localStorage.getItem(storageKey);
+  let items = [];
+  if (stored) { try { items = JSON.parse(stored); } catch(e) {} }
+  items.push({
+    time: time,
+    endTime: null,
+    title: spotName,
+    desc: 'AI 推荐添加',
+    tag: spotType
+  });
+  items.sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
+  localStorage.setItem(storageKey, JSON.stringify(items));
+  showToast('✅ 已添加到 ' + formatDate(dateStr) + ' 的 ' + time + ' 时段');
+  document.getElementById('aiResult').innerHTML = '<div class="ai-result"><div class="ai-result-title">✅ 添加成功！</div><div class="ai-result-detail">已添加到 <strong>' + formatDate(dateStr) + ' ' + time + '</strong>。<br>点击下面对应日期查看完整行程。</div>'
+    + '<button class="btn" onclick="navigate(\'' + cityKey + '/' + dateStr + '\')">查看当天行程 →</button></div>';
 }
 
 function clearItinerary(storageKey) {

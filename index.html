@@ -273,14 +273,14 @@ body {
 .timeline-photo-btn:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--border-dark); }
 .timeline-photo-btn:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--border-dark); }
 .timeline-upload {
-  display: block; margin-top: 0.8rem; border: 2px dashed var(--secondary); border-radius: 14px;
-  padding: 0.9rem; text-align: center; cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  margin-top: 0.6rem; border: 2px dashed var(--secondary); border-radius: 20px;
+  padding: 0.3rem 0.8rem; text-align: center; cursor: pointer; transition: all 0.2s;
   background: rgba(78, 205, 196, 0.06); color: var(--secondary-dark);
-  font-weight: 700; font-size: 0.95rem;
+  font-weight: 700; font-size: 0.82rem;
 }
 .timeline-upload:hover {
   background: rgba(78, 205, 196, 0.15); border-color: var(--secondary-dark);
-  transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--border-dark);
 }
 .timeline-upload input { display: none; }
 /* 地址栏 + 去这里按钮 */
@@ -435,6 +435,17 @@ body {
   margin-top: 0.7rem; border: 2px solid #ffd6e0; border-radius: 14px;
   padding: 0.8rem; background: rgba(255, 230, 109, 0.08);
   position: relative;
+}
+/* 空状态：紧凑 chip */
+.timeline-note-empty {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  margin-top: 0.6rem; border: 2px dashed var(--primary); border-radius: 20px;
+  padding: 0.3rem 0.8rem; cursor: pointer; transition: all 0.2s;
+  background: rgba(255, 107, 157, 0.06); color: var(--primary-dark);
+  font-weight: 700; font-size: 0.82rem;
+}
+.timeline-note-empty:hover {
+  background: rgba(255, 107, 157, 0.15); border-color: var(--primary-dark);
 }
 .timeline-note textarea {
   width: 100%; min-height: 60px; resize: vertical;
@@ -877,7 +888,7 @@ function renderTimeline(storageKey) {
       photoHtml += '</div></div>';
     } else {
       photoHtml = '<label class="timeline-upload">';
-      photoHtml += '📷 点击上传图片（景点/美食/打卡照）';
+      photoHtml += '📷 添加照片';
       photoHtml += '<input type="file" accept="image/*" onchange="handlePhotoUpload(event, ' + photoKey + ', \'' + storageKey + '\')">';
       photoHtml += '</label>';
     }
@@ -894,24 +905,30 @@ function renderTimeline(storageKey) {
     }
     addressHtml += '</div>';
 
-    // 备注栏
+    // 备注栏（空状态用紧凑 chip，有内容才展开）
     const notes = getNotes(storageKey);
     const noteText = notes[idx] || '';
     const links = extractLinks(noteText);
-    let noteHtml = '<div class="timeline-note">';
-    noteHtml += '<div class="timeline-note-label">📝 备注</div>';
-    noteHtml += '<textarea placeholder="备注..." ';
-    noteHtml += 'oninput="saveNote(' + idx + ', this.value, \'' + storageKey + '\')" ';
-    noteHtml += 'onblur="saveNoteAndToast(' + idx + ', this.value, \'' + storageKey + '\')">' + escapeHtml(noteText) + '</textarea>';
-    if (links.length > 0) {
-      noteHtml += '<div class="timeline-note-links">';
-      links.forEach(function(link) {
-        const shortLink = link.length > 35 ? link.substring(0, 32) + '...' : link;
-        noteHtml += '<a href="' + link + '" target="_blank" rel="noopener" class="timeline-note-link">🔗 ' + shortLink + '</a>';
-      });
+    let noteHtml = '';
+    if (!noteText.trim()) {
+      // 空状态：小 chip，点击展开
+      noteHtml = '<div class="timeline-note-empty" onclick="expandNote(' + idx + ', \'' + storageKey + '\', this)">📝 添加备注</div>';
+    } else {
+      noteHtml = '<div class="timeline-note">';
+      noteHtml += '<div class="timeline-note-label">📝 备注</div>';
+      noteHtml += '<textarea placeholder="备注..." ';
+      noteHtml += 'oninput="saveNote(' + idx + ', this.value, \'' + storageKey + '\')" ';
+      noteHtml += 'onblur="saveNoteAndToast(' + idx + ', this.value, \'' + storageKey + '\')">' + escapeHtml(noteText) + '</textarea>';
+      if (links.length > 0) {
+        noteHtml += '<div class="timeline-note-links">';
+        links.forEach(function(link) {
+          const shortLink = link.length > 35 ? link.substring(0, 32) + '...' : link;
+          noteHtml += '<a href="' + link + '" target="_blank" rel="noopener" class="timeline-note-link">🔗 ' + shortLink + '</a>';
+        });
+        noteHtml += '</div>';
+      }
       noteHtml += '</div>';
     }
-    noteHtml += '</div>';
 
     html += '<div class="timeline-item">';
     html += '<div class="timeline-time">' + timeHtml + '</div>';
@@ -984,6 +1001,21 @@ function saveNote(idx, value, storageKey) {
 function saveNoteAndToast(idx, value, storageKey) {
   saveNote(idx, value, storageKey);
   showToast(value ? '备注已保存 📝' : '备注已清空');
+}
+
+// 展开备注（从空状态 chip 变成完整编辑框）
+function expandNote(idx, storageKey, el) {
+  const noteHtml = '<div class="timeline-note">' +
+    '<div class="timeline-note-label">📝 备注</div>' +
+    '<textarea placeholder="备注..." autofocus oninput="saveNote(' + idx + ', this.value, \'' + storageKey + '\')" ' +
+    'onblur="saveNoteAndToast(' + idx + ', this.value, \'' + storageKey + '\')"></textarea>' +
+    '</div>';
+  el.outerHTML = noteHtml;
+  // autofocus 在动态插入时可能不生效，手动 focus
+  setTimeout(function() {
+    const ta = document.querySelector('.timeline-note textarea:last-of-child') || document.querySelector('.timeline-note textarea');
+    if (ta && !ta.value) ta.focus();
+  }, 10);
 }
 
 // 从备注文本中提取 URL（小红书、http链接等）

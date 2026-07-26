@@ -900,7 +900,7 @@ function renderTimeline(storageKey) {
     const links = extractLinks(noteText);
     let noteHtml = '<div class="timeline-note">';
     noteHtml += '<div class="timeline-note-label">📝 备注</div>';
-    noteHtml += '<textarea placeholder="记下想去的店铺、注意事项、小红书链接（粘贴后自动识别为可点击链接）..." ';
+    noteHtml += '<textarea placeholder="备注..." ';
     noteHtml += 'oninput="saveNote(' + idx + ', this.value, \'' + storageKey + '\')" ';
     noteHtml += 'onblur="saveNoteAndToast(' + idx + ', this.value, \'' + storageKey + '\')">' + escapeHtml(noteText) + '</textarea>';
     if (links.length > 0) {

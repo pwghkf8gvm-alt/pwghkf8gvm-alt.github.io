@@ -283,6 +283,35 @@ body {
   transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--border-dark);
 }
 .timeline-upload input { display: none; }
+/* 地址栏 + 去这里按钮 */
+.timeline-address {
+  display: flex; gap: 0.5rem; align-items: stretch; margin-top: 0.7rem;
+  flex-wrap: wrap;
+}
+.timeline-address-input {
+  flex: 1; min-width: 180px;
+  border: 2px solid var(--border-dark); border-radius: 12px;
+  padding: 0.55rem 0.8rem; font-family: inherit; font-size: 0.95rem;
+  background: var(--bg-cream); color: var(--text-main);
+  transition: all 0.2s;
+}
+.timeline-address-input:focus {
+  outline: none; box-shadow: 2px 2px 0 var(--border-dark);
+  background: #fff;
+}
+.timeline-address-input::placeholder { color: #aaa; }
+.timeline-go-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  background: var(--secondary); color: white;
+  border: 2px solid var(--border-dark); border-radius: 12px;
+  padding: 0.55rem 1rem; font-family: inherit; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; box-shadow: 2px 2px 0 var(--border-dark);
+  transition: all 0.2s; text-decoration: none; white-space: nowrap;
+}
+.timeline-go-btn:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--border-dark); }
+.timeline-go-btn:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--border-dark); }
+.timeline-go-btn.disabled { background: #ccc; cursor: not-allowed; pointer-events: none; }
 .empty-state {
   text-align: center; padding: 4rem 2rem; background: var(--bg-card);
   border: 4px dashed #ccc; border-radius: 24px; margin-top: 2rem;
@@ -372,6 +401,9 @@ body {
   .timeline-upload { font-size: 0.85rem; padding: 0.75rem; }
   .timeline-photo img { max-height: 220px; }
   .timeline-content { padding: 1rem 1.1rem; }
+  .timeline-address { flex-direction: column; gap: 0.4rem; }
+  .timeline-address-input { min-width: 0; font-size: 0.9rem; }
+  .timeline-go-btn { justify-content: center; }
   .navbar { padding: 0.7rem 0.8rem; }
   .navbar-brand { font-size: 1.15rem; gap: 0.35rem; }
   .navbar-brand .logo { width: 34px; height: 34px; font-size: 1.1rem; }
@@ -678,6 +710,18 @@ function renderTimeline(storageKey) {
       photoHtml += '<input type="file" accept="image/*" onchange="handlePhotoUpload(event, ' + photoKey + ', \'' + storageKey + '\')">';
       photoHtml += '</label>';
     }
+    // 地址栏 + 去这里按钮
+    const addresses = getAddresses(storageKey);
+    const addr = addresses[idx] || '';
+    const gmapsUrl = addr ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr + ' Tokyo Japan') : '';
+    let addressHtml = '<div class="timeline-address">';
+    addressHtml += '<input type="text" class="timeline-address-input" placeholder="📍 输入地址（如：涩谷区神南1-23）" value="' + escapeHtml(addr) + '" onchange="saveAddress(' + idx + ', this.value, \'' + storageKey + '\')">';
+    if (addr) {
+      addressHtml += '<a href="' + gmapsUrl + '" target="_blank" rel="noopener" class="timeline-go-btn">🗺️ 去这里</a>';
+    } else {
+      addressHtml += '<span class="timeline-go-btn disabled">🗺️ 去这里</span>';
+    }
+    addressHtml += '</div>';
     html += '<div class="timeline-item">';
     html += '<div class="timeline-time">' + timeHtml + '</div>';
     html += '<div class="timeline-dot">' + tInfo.emoji + '</div>';
@@ -686,10 +730,38 @@ function renderTimeline(storageKey) {
     html += descHtml;
     html += tagHtml;
     html += photoHtml;
+    html += addressHtml;
     html += '</div></div>';
   });
   html += '</div>';
   container.innerHTML = html;
+}
+
+// ============================================
+// 地址相关（每个行程项的地址，独立键存储）
+// ============================================
+function getAddresses(storageKey) {
+  const raw = localStorage.getItem(storageKey + '-addresses');
+  if (raw) { try { return JSON.parse(raw); } catch(e) {} }
+  return {};
+}
+
+function saveAddresses(storageKey, addresses) {
+  try {
+    localStorage.setItem(storageKey + '-addresses', JSON.stringify(addresses));
+    return true;
+  } catch(e) { return false; }
+}
+
+function saveAddress(idx, value, storageKey) {
+  const addresses = getAddresses(storageKey);
+  value = value.trim();
+  if (value) addresses[idx] = value;
+  else delete addresses[idx];
+  saveAddresses(storageKey, addresses);
+  // 重新渲染该卡片以更新"去这里"按钮状态
+  renderTimeline(storageKey);
+  showToast(value ? '地址已保存 📍' : '地址已清空');
 }
 
 // ============================================
@@ -819,6 +891,7 @@ function clearItinerary(storageKey) {
   if (!confirm('确定要清空当天的行程吗？')) return;
   localStorage.removeItem(storageKey);
   localStorage.removeItem(storageKey + '-photos');
+  localStorage.removeItem(storageKey + '-addresses');
   renderTimeline(storageKey);
   showToast('行程已清空');
 }

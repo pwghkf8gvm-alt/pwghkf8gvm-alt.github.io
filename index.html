@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的旅游工作台</title>
+  <style>
+/* ============================================
+   旅游工作台 - 卡通风格主题 (单文件版)
+   ============================================ */
+:root {
+  --primary: #ff6b9d;
+  --primary-dark: #e85a87;
+  --secondary: #4ecdc4;
+  --secondary-dark: #3db5ac;
+  --accent: #ffe66d;
+  --accent-dark: #f5d83a;
+  --bg-cream: #fff8ec;
+  --bg-card: #ffffff;
+  --text-main: #2d3436;
+  --text-soft: #636e72;
+  --border-dark: #2d3436;
+  --shadow-color: rgba(45, 52, 54, 0.15);
+  --shadow-hard: 4px 4px 0 var(--border-dark);
+  --shadow-soft: 0 8px 24px var(--shadow-color);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Quicksand', 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  background: var(--bg-cream);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255, 230, 109, 0.3) 0%, transparent 30%),
+    radial-gradient(circle at 90% 80%, rgba(78, 205, 196, 0.3) 0%, transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(255, 107, 157, 0.1) 0%, transparent 50%);
+  min-height: 100vh;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+.navbar {
+  background: var(--bg-card);
+  border-bottom: 4px solid var(--border-dark);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 0 var(--shadow-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.navbar-brand {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.navbar-brand .logo {
+  display: inline-block;
+  background: var(--accent);
+  border: 3px solid var(--border-dark);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  transform: rotate(-10deg);
+  box-shadow: var(--shadow-hard);
+}
+.navbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-soft);
+}
+.navbar-breadcrumb a, .navbar-breadcrumb span.crumb-link {
+  color: var(--secondary-dark);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  background: rgba(78, 205, 196, 0.15);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.navbar-breadcrumb a:hover, .navbar-breadcrumb span.crumb-link:hover {
+  background: rgba(78, 205, 196, 0.3);
+  transform: translateY(-2px);
+}
+.navbar-breadcrumb .sep { color: var(--text-soft); opacity: 0.5; }
+.navbar-breadcrumb .current { color: var(--text-main); font-weight: 700; }
+.container { max-width: 960px; margin: 0 auto; padding: 2.2rem 1.5rem 4rem; }
+.page-header { text-align: center; margin-bottom: 3rem; }
+.page-title {
+  font-size: 3rem; font-weight: 900; color: var(--text-main);
+  display: inline-block; position: relative; margin-bottom: 0.5rem;
+}
+.page-title::after {
+  content: ''; display: block; height: 8px; background: var(--accent);
+  border-radius: 4px; margin-top: 0.3rem; border: 2px solid var(--border-dark);
+  transform: rotate(-1deg);
+}
+.page-subtitle { font-size: 1.2rem; color: var(--text-soft); font-weight: 500; }
+.cities-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem; margin-top: 2rem;
+}
+.city-card {
+  background: var(--bg-card); border: 4px solid var(--border-dark);
+  border-radius: 24px; overflow: hidden; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-hard); position: relative;
+  text-decoration: none; color: inherit; display: block;
+}
+.city-card:hover { transform: translate(-4px, -4px) rotate(-0.5deg); box-shadow: 8px 8px 0 var(--border-dark); }
+.city-card:active { transform: translate(0, 0); box-shadow: var(--shadow-hard); }
+.city-card-banner {
+  height: 180px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; font-size: 4rem;
+}
+.city-card-banner.tokyo { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); }
+.city-card-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 25%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.3) 0%, transparent 25%);
+}
+.city-card-emoji { position: relative; z-index: 2; filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.15)); }
+.city-card-body { padding: 1.5rem; }
+.city-card-name { font-size: 1.75rem; font-weight: 900; margin-bottom: 0.3rem; color: var(--text-main); }
+.city-card-dates {
+  font-size: 1.05rem; color: var(--text-soft); font-weight: 600;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.city-card-meta {
+  margin-top: 1rem; padding-top: 1rem; border-top: 2px dashed #e0e0e0;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.9rem; color: var(--text-soft);
+}
+.city-card-days {
+  background: var(--accent); border: 2px solid var(--border-dark);
+  border-radius: 20px; padding: 0.2rem 0.8rem; font-weight: 700; color: var(--text-main);
+}
+.city-card-arrow {
+  background: var(--primary); color: white; width: 36px; height: 36px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--border-dark); font-weight: 900; font-size: 1.2rem;
+}
+.dates-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem; margin-top: 2rem;
+}
+.date-card {
+  background: var(--bg-card); border: 4px solid var(--border-dark);
+  border-radius: 20px; padding: 1.5rem; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-hard); text-decoration: none; color: var(--text-main);
+  position: relative; display: block;
+}
+.date-card:hover { transform: translate(-3px, -3px); box-shadow: 7px 7px 0 var(--border-dark); }
+.date-card-day-badge {
+  display: inline-block; background: var(--primary); color: white;
+  padding: 0.3rem 1rem; border-radius: 20px; border: 2px solid var(--border-dark);
+  font-weight: 800; font-size: 0.85rem; margin-bottom: 0.8rem;
+}
+.date-card-date { font-size: 1.55rem; font-weight: 900; margin-bottom: 0.3rem; }
+.date-card-weekday { font-size: 1.1rem; color: var(--text-soft); font-weight: 600; margin-bottom: 1rem; }
+.date-card-preview {
+  font-size: 0.85rem; color: var(--text-soft); padding-top: 0.8rem;
+  border-top: 2px dashed #e0e0e0; display: flex; justify-content: space-between; align-items: center;
+}
+.date-card-count {
+  background: var(--secondary); color: white; padding: 0.2rem 0.7rem;
+  border-radius: 16px; font-weight: 700; border: 2px solid var(--border-dark); font-size: 0.8rem;
+}
+.date-card.has-itinerary { background: linear-gradient(135deg, #fff 0%, #fff8ec 100%); }
+.date-card.empty {
+  background: repeating-linear-gradient(45deg, #fff, #fff 10px, #fff8ec 10px, #fff8ec 20px);
+}
+.date-card.empty .date-card-day-badge { background: #ccc; }
+.timeline { max-width: 900px; margin: 2rem auto; position: relative; padding-left: 60px; }
+.timeline::before {
+  content: ''; position: absolute; left: 110px; top: 0; bottom: 0;
+  width: 5px; background: var(--border-dark); border-radius: 3px;
+}
+.timeline-item { position: relative; padding-left: 145px; padding-right: 10px; margin-bottom: 2.2rem; min-height: 80px; }
+.timeline-dot {
+  position: absolute; left: 94px; top: 16px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--accent); border: 4px solid var(--border-dark);
+  z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.timeline-time {
+  position: absolute; left: -68px; top: 18px; width: 150px; text-align: right;
+  font-weight: 800; color: var(--text-main); font-size: 1.05rem;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.5px; line-height: 1.45;
+}
+.timeline-time .time-start { display: block; }
+.timeline-time .time-end { display: block; font-size: 0.85rem; color: var(--text-soft); font-weight: 700; margin-top: 2px; }
+.timeline-content {
+  background: var(--bg-card); border: 3px solid var(--border-dark);
+  border-radius: 18px; padding: 1.2rem 1.5rem; box-shadow: var(--shadow-hard); transition: all 0.2s;
+}
+.timeline-content:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--border-dark); }
+.timeline-title {
+  font-size: 1.35rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main);
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+.timeline-desc { font-size: 1.05rem; color: var(--text-soft); line-height: 1.7; margin-bottom: 0.35rem; }
+.timeline-tag {
+  display: inline-block; background: rgba(78, 205, 196, 0.2); color: var(--secondary-dark);
+  padding: 0.25rem 0.8rem; border-radius: 12px; font-size: 0.85rem; font-weight: 700;
+  margin-right: 0.4rem; margin-top: 0.3rem; border: 1.5px solid var(--secondary);
+}
+.timeline-tag.food { background: rgba(255, 107, 157, 0.15); color: var(--primary-dark); border-color: var(--primary); }
+.timeline-tag.transport { background: rgba(108, 117, 125, 0.15); color: #495057; border-color: #6c757d; }
+.timeline-tag-wrapper { margin-bottom: 0.5rem; }
+/* 行程图片 */
+.timeline-photo {
+  margin-top: 0.8rem; border: 2px solid var(--border-dark); border-radius: 14px;
+  overflow: hidden; background: var(--bg-cream); position: relative;
+  box-shadow: 2px 2px 0 var(--border-dark);
+}
+.timeline-photo img {
+  display: block; width: 100%; height: auto; max-height: 260px; object-fit: cover;
+  border-radius: 12px; margin: -2px;
+  min-height: 80px; background: linear-gradient(135deg, #fff8ec, #fff);
+}
+.timeline-photo-actions {
+  position: absolute; top: 6px; right: 6px; display: flex; gap: 6px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.timeline-photo:hover .timeline-photo-actions { opacity: 1; }
+.timeline-photo-btn {
+  background: rgba(255,255,255,0.95); border: 2px solid var(--border-dark);
+  border-radius: 10px; width: 32px; height: 32px; cursor: pointer;
+  font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+  box-shadow: 2px 2px 0 var(--border-dark); padding: 0;
+}
+.timeline-photo-btn:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--border-dark); }
+.timeline-photo-btn:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--border-dark); }
+.timeline-upload {
+  display: block; margin-top: 0.8rem; border: 2px dashed var(--secondary); border-radius: 14px;
+  padding: 0.9rem; text-align: center; cursor: pointer; transition: all 0.2s;
+  background: rgba(78, 205, 196, 0.06); color: var(--secondary-dark);
+  font-weight: 700; font-size: 0.95rem;
+}
+.timeline-upload:hover {
+  background: rgba(78, 205, 196, 0.15); border-color: var(--secondary-dark);
+  transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--border-dark);
+}
+.timeline-upload input { display: none; }
+.empty-state {
+  text-align: center; padding: 4rem 2rem; background: var(--bg-card);
+  border: 4px dashed #ccc; border-radius: 24px; margin-top: 2rem;
+}
+.empty-state-emoji { font-size: 4rem; margin-bottom: 1rem; }
+.empty-state-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-soft); }
+.empty-state-desc { color: var(--text-soft); margin-bottom: 1.5rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--primary); color: white; border: 3px solid var(--border-dark);
+  border-radius: 16px; padding: 0.7rem 1.5rem; font-size: 1rem; font-weight: 700;
+  cursor: pointer; text-decoration: none; box-shadow: var(--shadow-hard);
+  transition: all 0.2s; font-family: inherit;
+}
+.btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--border-dark); }
+.btn:active { transform: translate(0, 0); box-shadow: var(--shadow-hard); }
+.btn-secondary { background: var(--secondary); }
+.btn-accent { background: var(--accent); color: var(--text-main); }
+.itinerary-header {
+  background: var(--bg-card); border: 4px solid var(--border-dark);
+  border-radius: 24px; padding: 2rem; margin-bottom: 2rem;
+  box-shadow: var(--shadow-hard); position: relative; overflow: hidden;
+}
+.itinerary-header::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px; background: var(--accent);
+  border-radius: 50%; border: 3px solid var(--border-dark); opacity: 0.4;
+}
+.itinerary-header::after {
+  content: ''; position: absolute; bottom: -20px; left: -20px;
+  width: 80px; height: 80px; background: var(--secondary);
+  border-radius: 50%; border: 3px solid var(--border-dark); opacity: 0.3;
+}
+.itinerary-day-badge {
+  display: inline-block; background: var(--primary); color: white;
+  padding: 0.4rem 1.2rem; border-radius: 20px; border: 3px solid var(--border-dark);
+  font-weight: 800; margin-bottom: 0.8rem; position: relative; z-index: 2;
+}
+.itinerary-date { font-size: 2.4rem; font-weight: 900; margin-bottom: 0.3rem; position: relative; z-index: 2; }
+.itinerary-weekday { font-size: 1.3rem; color: var(--text-soft); font-weight: 600; position: relative; z-index: 2; }
+.itinerary-actions {
+  display: flex; gap: 1rem; margin-top: 1.5rem; position: relative; z-index: 2; flex-wrap: wrap;
+}
+.import-section {
+  background: var(--bg-card); border: 4px solid var(--border-dark);
+  border-radius: 24px; padding: 2rem; margin: 2rem 0; box-shadow: var(--shadow-hard);
+}
+.import-section h3 { font-size: 1.4rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.import-section textarea {
+  width: 100%; min-height: 200px; border: 3px solid var(--border-dark);
+  border-radius: 16px; padding: 1rem; font-family: inherit; font-size: 0.95rem;
+  resize: vertical; background: var(--bg-cream); color: var(--text-main);
+}
+.import-section textarea:focus { outline: none; box-shadow: var(--shadow-hard); }
+.import-format-hint {
+  background: rgba(78, 205, 196, 0.1); border: 2px dashed var(--secondary);
+  border-radius: 12px; padding: 1rem; margin-top: 1rem; font-size: 0.85rem; color: var(--text-soft);
+}
+.import-format-hint code {
+  background: rgba(0,0,0,0.06); padding: 0.1rem 0.4rem; border-radius: 4px;
+  font-family: 'Courier New', monospace; font-weight: 700; color: var(--primary-dark);
+}
+.import-actions { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+.deco-cloud {
+  position: fixed; font-size: 2.5rem; opacity: 0.4;
+  pointer-events: none; animation: float 8s ease-in-out infinite;
+}
+.deco-cloud.top-left { top: 100px; left: 30px; }
+.deco-cloud.bottom-right { bottom: 50px; right: 30px; animation-delay: 2s; }
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+@media (max-width: 768px) {
+  .page-title { font-size: 2rem; }
+  .container { padding: 1.5rem 1rem 3rem; }
+  .cities-grid, .dates-grid { grid-template-columns: 1fr; }
+  .timeline::before { left: 70px; }
+  .timeline { padding-left: 25px; }
+  .timeline-item { padding-left: 105px; padding-right: 4px; }
+  .timeline-time { left: -30px; font-size: 0.9rem; width: 100px; letter-spacing: -0.4px; }
+  .timeline-time .time-end { font-size: 0.75rem; }
+  .timeline-dot { left: 54px; width: 32px; height: 32px; }
+  .timeline-title { font-size: 1.15rem; }
+  .timeline-desc { font-size: 0.95rem; }
+  .timeline-tag { font-size: 0.78rem; padding: 0.2rem 0.6rem; }
+  .timeline-upload { font-size: 0.85rem; padding: 0.75rem; }
+  .timeline-photo img { max-height: 220px; }
+  .navbar { padding: 0.7rem 0.8rem; }
+  .navbar-brand { font-size: 1.15rem; gap: 0.35rem; }
+  .navbar-brand .logo { width: 34px; height: 34px; font-size: 1.1rem; }
+  .navbar-breadcrumb { font-size: 0.75rem; gap: 0.25rem; }
+  .navbar-breadcrumb a, .navbar-breadcrumb span.crumb-link { padding: 0.2rem 0.5rem; }
+  .deco-cloud { display: none; }
+}
+.toast {
+  position: fixed; bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--secondary); color: white; padding: 1rem 2rem;
+  border-radius: 16px; border: 3px solid var(--border-dark);
+  box-shadow: var(--shadow-hard); font-weight: 700; z-index: 1000;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--primary); }
+  </style>
+</head>
+<body>
+  <span class="deco-cloud top-left">☁️</span>
+  <span class="deco-cloud bottom-right">✈️</span>
+
+  <nav class="navbar">
+    <a class="navbar-brand" onclick="navigate('')">
+      <span class="logo">🧳</span>
+      <span>旅游工作台</span>
+    </a>
+    <div class="navbar-breadcrumb" id="breadcrumb"></div>
+  </nav>
+
+  <div class="container" id="app"></div>
+
+  <script>
+// ============================================
+// 城市配置
+// ============================================
+const CITIES = {
+  tokyo: {
+    name: '东京',
+    emoji: '🗼',
+    country: '日本',
+    dates: ['2026-07-31', '2026-08-01', '2026-08-02', '2026-08-03'],
+    dateLabels: {
+      '2026-07-31': { day: 'Day 1', weekday: '周五', title: '抵达东京' },
+      '2026-08-01': { day: 'Day 2', weekday: '周六', title: '城市探索' },
+      '2026-08-02': { day: 'Day 3', weekday: '周日', title: '文化之旅' },
+      '2026-08-03': { day: 'Day 4', weekday: '周一', title: '告别东京' }
+    }
+  }
+};
+
+// ============================================
+// 工具函数
+// ============================================
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+}
+
+function showToast(message, type) {
+  type = type || 'success';
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.classList.add('show'); }, 50);
+  setTimeout(function() {
+    toast.classList.remove('show');
+    setTimeout(function() { toast.remove(); }, 400);
+  }, 2500);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// 行程解析
+function parseItinerary(text) {
+  const lines = text.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  const items = [];
+  lines.forEach(function(line) {
+    const match = line.match(/^(\d{1,2}[:：]\d{2})(?:\s*[-~至到]\s*(\d{1,2}[:：]\d{2}))?\s+(.+)$/);
+    if (match) {
+      let time = match[1].replace('：', ':');
+      const endTime = match[2] ? match[2].replace('：', ':') : null;
+      const rest = match[3];
+      const tagMatch = rest.match(/\[([^\]]+)\]/);
+      let tag = null;
+      let titleAndDesc = rest;
+      if (tagMatch) {
+        tag = tagMatch[1];
+        titleAndDesc = rest.replace(/\[([^\]]+)\]/g, '').trim();
+      }
+      let title = titleAndDesc;
+      let desc = '';
+      const sepMatch = titleAndDesc.match(/^([^：:-]+)[：:-]\s*(.+)$/);
+      if (sepMatch) {
+        title = sepMatch[1].trim();
+        desc = sepMatch[2].trim();
+      }
+      items.push({ time: time, endTime: endTime, title: title, desc: desc, tag: tag ? tag.toLowerCase() : null });
+    } else {
+      if (items.length > 0) {
+        const last = items[items.length - 1];
+        if (last.desc) { last.desc += '\n' + line; } else { last.desc = line; }
+      }
+    }
+  });
+  items.sort(function(a, b) { return a.time.localeCompare(b.time); });
+  return items;
+}
+
+function timeEmoji(time) {
+  const hour = parseInt(time.split(':')[0]);
+  if (hour < 6) return '🌙';
+  if (hour < 10) return '🌅';
+  if (hour < 14) return '☀️';
+  if (hour < 17) return '🌤️';
+  if (hour < 20) return '🌇';
+  return '🌃';
+}
+
+function tagInfo(tag) {
+  if (!tag) return { emoji: '📍', cls: '' };
+  const t = tag.toLowerCase();
+  if (['美食','早餐','午餐','晚餐','小吃','咖啡','food','meal'].some(function(k){ return t.includes(k); })) return { emoji: '🍜', cls: 'food' };
+  if (['景点','观光','寺庙','公园','sightseeing','attraction'].some(function(k){ return t.includes(k); })) return { emoji: '📷', cls: '' };
+  if (['交通','地铁','电车','飞机','transport','train'].some(function(k){ return t.includes(k); })) return { emoji: '🚃', cls: 'transport' };
+  if (['购物','商场','shopping','shop'].some(function(k){ return t.includes(k); })) return { emoji: '🛍️', cls: '' };
+  if (['住宿','酒店','hotel'].some(function(k){ return t.includes(k); })) return { emoji: '🏨', cls: '' };
+  return { emoji: '📍', cls: '' };
+}
+
+// ============================================
+// 路由
+// ============================================
+function getRoute() {
+  const hash = location.hash.replace(/^#\/?/, '');
+  if (!hash) return { view: 'home' };
+  const parts = hash.split('/');
+  if (parts.length === 1) return { view: 'city', city: parts[0] };
+  if (parts.length === 2) return { view: 'day', city: parts[0], date: parts[1] };
+  return { view: 'home' };
+}
+
+function navigate(path) {
+  location.hash = path ? '/' + path : '';
+}
+
+window.addEventListener('hashchange', render);
+
+// ============================================
+// 渲染
+// ============================================
+function renderBreadcrumb(route) {
+  const bc = document.getElementById('breadcrumb');
+  let html = '';
+  html += '<span class="crumb-link" onclick="navigate(\'\')">首页</span>';
+  if (route.view === 'city' || route.view === 'day') {
+    const city = CITIES[route.city];
+    html += '<span class="sep">›</span>';
+    html += '<span class="crumb-link" onclick="navigate(\'' + route.city + '\')">' + city.name + '</span>';
+  }
+  if (route.view === 'day') {
+    html += '<span class="sep">›</span>';
+    html += '<span class="current">' + formatDate(route.date) + '</span>';
+  } else if (route.view === 'city') {
+    html += '<span class="sep">›</span>';
+    html += '<span class="current">' + CITIES[route.city].name + '</span>';
+  }
+  bc.innerHTML = html;
+}
+
+function renderHome() {
+  const app = document.getElementById('app');
+  let html = '<div class="page-header"><h1 class="page-title">我的旅行地图</h1><p class="page-subtitle">点击城市，开启你的旅程 ✨</p></div>';
+  html += '<div class="cities-grid">';
+  Object.entries(CITIES).forEach(function(entry) {
+    const key = entry[0], city = entry[1];
+    const dayCount = city.dates.length;
+    const firstDate = city.dates[0];
+    const lastDate = city.dates[city.dates.length - 1];
+    html += '<div class="city-card" onclick="navigate(\'' + key + '\')">';
+    html += '<div class="city-card-banner ' + key + '"><span class="city-card-emoji">' + city.emoji + '</span></div>';
+    html += '<div class="city-card-body">';
+    html += '<div class="city-card-name">' + city.name + '</div>';
+    html += '<div class="city-card-dates">🗓️ ' + formatDate(firstDate) + ' - ' + formatDate(lastDate) + '</div>';
+    html += '<div class="city-card-meta">';
+    html += '<span class="city-card-days">' + dayCount + ' 天行程</span>';
+    html += '<span>' + city.country + '</span>';
+    html += '<span class="city-card-arrow">→</span>';
+    html += '</div></div></div>';
+  });
+  html += '</div>';
+  app.innerHTML = html;
+}
+
+function renderCity(cityKey) {
+  const city = CITIES[cityKey];
+  const app = document.getElementById('app');
+  let html = '<div class="page-header"><h1 class="page-title">' + city.emoji + ' ' + city.name + '</h1>';
+  html += '<p class="page-subtitle">' + formatDate(city.dates[0]) + ' - ' + formatDate(city.dates[city.dates.length - 1]) + ' · ' + city.dates.length + '天行程</p></div>';
+  html += '<div class="dates-grid">';
+  city.dates.forEach(function(dateStr) {
+    const info = city.dateLabels[dateStr];
+    const stored = localStorage.getItem(cityKey + '-' + dateStr);
+    const hasData = !!stored;
+    let count = 0;
+    if (stored) { try { count = JSON.parse(stored).length; } catch(e) {} }
+    let cls = 'date-card ' + (hasData ? 'has-itinerary' : 'empty');
+    html += '<div class="' + cls + '" onclick="navigate(\'' + cityKey + '/' + dateStr + '\')">';
+    html += '<span class="date-card-day-badge">' + info.day + '</span>';
+    html += '<div class="date-card-date">' + formatDate(dateStr) + '</div>';
+    html += '<div class="date-card-weekday">' + info.weekday + ' · ' + info.title + '</div>';
+    html += '<div class="date-card-preview">';
+    html += '<span>' + (hasData ? '行程已就绪' : '点击添加行程') + '</span>';
+    html += count > 0 ? '<span class="date-card-count">' + count + ' 项</span>' : '<span>📝</span>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  app.innerHTML = html;
+}
+
+function renderDay(cityKey, dateStr) {
+  const city = CITIES[cityKey];
+  const info = city.dateLabels[dateStr];
+  const storageKey = cityKey + '-' + dateStr;
+  const app = document.getElementById('app');
+
+  let html = '<div class="itinerary-header">';
+  html += '<span class="itinerary-day-badge">' + info.day + '</span>';
+  html += '<div class="itinerary-date">' + formatDate(dateStr) + '</div>';
+  html += '<div class="itinerary-weekday">' + info.weekday + ' · ' + info.title + '</div>';
+  html += '<div class="itinerary-actions">';
+  html += '<button class="btn btn-secondary" onclick="navigate(\'' + cityKey + '\')">← 返回日期列表</button>';
+  html += '<button class="btn btn-accent" onclick="toggleImport()">✍️ 导入/编辑行程</button>';
+  html += '<button class="btn" onclick="clearItinerary(\'' + storageKey + '\')">🗑️ 清空行程</button>';
+  html += '</div></div>';
+
+  html += '<div class="import-section" id="importSection" style="display:none;">';
+  html += '<h3>✍️ 导入行程文本</h3>';
+  html += '<textarea id="importText" placeholder="在此粘贴你的行程文本，支持以下格式：\n\n09:00 早餐 - 酒店附近便利店 [美食]\n10:30-12:00 浅草寺 [景点] 参观东京最古老的寺庙\n12:30 午餐：雷门附近寿司店 [美食]\n14:00 涩谷十字路口 [景点] 游览著名的十字路口\n15:30 购物：涩谷109 [购物]\n18:00 晚餐 - 居酒屋 [美食]\n20:00 新宿夜景 [景点] 都厅免费观景台\n\n每行一个行程项，以时间开头。标签用 [方括号] 标注。\n时间格式：HH:MM，可用 - 连接结束时间。\n标题与描述可用 - 或 ：分隔。"></textarea>';
+  html += '<div class="import-format-hint"><strong>💡 格式说明：</strong><br>';
+  html += '<code>时间 [结束时间] 标题 [标签] 描述</code><br>';
+  html += '支持标签：美食、景点、交通、购物、住宿<br>';
+  html += '示例：<code>09:00 早餐 - 便利店 [美食]</code></div>';
+  html += '<div class="import-actions">';
+  html += '<button class="btn" onclick="importItinerary(\'' + storageKey + '\')">💾 保存行程</button>';
+  html += '<button class="btn btn-secondary" onclick="loadExample()">📋 加载示例</button>';
+  html += '</div></div>';
+
+  html += '<div id="timelineContainer"></div>';
+  app.innerHTML = html;
+
+  // 渲染时间线
+  renderTimeline(storageKey);
+}
+
+function renderTimeline(storageKey) {
+  const container = document.getElementById('timelineContainer');
+  if (!container) return;
+  const stored = localStorage.getItem(storageKey);
+  let items = [];
+  if (stored) { try { items = JSON.parse(stored); } catch(e) {} }
+
+  if (!items || items.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">🗓️</div>';
+    container.innerHTML += '<div class="empty-state-title">还没有行程安排</div>';
+    container.innerHTML += '<div class="empty-state-desc">点击上方"导入/编辑行程"按钮，粘贴你的行程文本即可生成可视化时间线</div>';
+    container.innerHTML += '<button class="btn" onclick="toggleImport()">✍️ 开始添加行程</button></div>';
+    return;
+  }
+
+  const photos = getPhotos(storageKey);
+  let html = '<div class="timeline">';
+  items.forEach(function(item, idx) {
+    const tInfo = tagInfo(item.tag);
+    // 时间分两行显示：开始时间在上，结束时间在下（小字）
+    let timeHtml = '<span class="time-start">' + item.time + '</span>';
+    if (item.endTime) timeHtml += '<span class="time-end">→ ' + item.endTime + '</span>';
+    let descHtml = '';
+    if (item.desc) {
+      descHtml = item.desc.split('\n').map(function(d) {
+        return '<p class="timeline-desc">' + escapeHtml(d) + '</p>';
+      }).join('');
+    }
+    const tagHtml = item.tag ? '<div class="timeline-tag-wrapper"><span class="timeline-tag ' + tInfo.cls + '">' + escapeHtml(item.tag) + '</span></div>' : '';
+    const photoKey = idx;
+    const photo = photos[photoKey];
+    let photoHtml = '';
+    if (photo) {
+      photoHtml = '<div class="timeline-photo">';
+      photoHtml += '<img src="' + photo + '" alt="行程图片">';
+      photoHtml += '<div class="timeline-photo-actions">';
+      photoHtml += '<button class="timeline-photo-btn" onclick="uploadPhoto(' + photoKey + ', \'' + storageKey + '\')" title="更换图片">📷</button>';
+      photoHtml += '<button class="timeline-photo-btn" onclick="removePhoto(' + photoKey + ', \'' + storageKey + '\')" title="删除图片">🗑️</button>';
+      photoHtml += '</div></div>';
+    } else {
+      photoHtml = '<label class="timeline-upload">';
+      photoHtml += '📷 点击上传图片（景点/美食/打卡照）';
+      photoHtml += '<input type="file" accept="image/*" onchange="handlePhotoUpload(event, ' + photoKey + ', \'' + storageKey + '\')">';
+      photoHtml += '</label>';
+    }
+    html += '<div class="timeline-item">';
+    html += '<div class="timeline-time">' + timeHtml + '</div>';
+    html += '<div class="timeline-dot">' + tInfo.emoji + '</div>';
+    html += '<div class="timeline-content">';
+    html += '<div class="timeline-title">' + timeEmoji(item.time) + ' ' + escapeHtml(item.title) + '</div>';
+    html += descHtml;
+    html += tagHtml;
+    html += photoHtml;
+    html += '</div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ============================================
+// 图片上传相关（图片以base64存localStorage，独立键存储避免与行程文本混淆）
+// ============================================
+function getPhotos(storageKey) {
+  const raw = localStorage.getItem(storageKey + '-photos');
+  if (raw) { try { return JSON.parse(raw); } catch(e) {} }
+  return {};
+}
+
+function savePhotos(storageKey, photos) {
+  try {
+    localStorage.setItem(storageKey + '-photos', JSON.stringify(photos));
+    return true;
+  } catch(e) {
+    showToast('存储空间不足，请删除其他图片再试', 'error');
+    return false;
+  }
+}
+
+function handlePhotoUpload(event, idx, storageKey) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('请选择图片文件', 'error');
+    return;
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    showToast('图片过大（超过4MB），请压缩后再上传', 'error');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // 压缩图片到合理尺寸，避免localStorage超限
+    compressImage(e.target.result, 1000, 0.8, function(compressed) {
+      const photos = getPhotos(storageKey);
+      photos[idx] = compressed;
+      if (savePhotos(storageKey, photos)) {
+        renderTimeline(storageKey);
+        showToast('图片已上传！📸');
+      }
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadPhoto(idx, storageKey) {
+  // 触发隐藏的文件选择
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function(e) { handlePhotoUpload(e, idx, storageKey); };
+  input.click();
+}
+
+function removePhoto(idx, storageKey) {
+  if (!confirm('确定删除这张图片吗？')) return;
+  const photos = getPhotos(storageKey);
+  delete photos[idx];
+  savePhotos(storageKey, photos);
+  renderTimeline(storageKey);
+  showToast('图片已删除');
+}
+
+// 压缩图片：等比缩放到maxWidth以内，输出JPEG dataURL
+function compressImage(dataUrl, maxWidth, quality, callback) {
+  const img = new Image();
+  img.onload = function() {
+    let w = img.width, h = img.height;
+    if (w > maxWidth) { h = h * maxWidth / w; w = maxWidth; }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    // 白底，避免透明PNG变黑
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    callback(canvas.toDataURL('image/jpeg', quality));
+  };
+  img.onerror = function() { callback(dataUrl); };
+  img.src = dataUrl;
+}
+
+// ============================================
+// 交互函数
+// ============================================
+function toggleImport() {
+  const sec = document.getElementById('importSection');
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+  if (sec.style.display === 'block') {
+    const ta = document.getElementById('importText');
+    // 如果已有行程，把数据回填到文本框（简化：直接显示存储的原始文本会更好，但这里重新格式化）
+    const route = getRoute();
+    const storageKey = route.city + '-' + route.date;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        const items = JSON.parse(stored);
+        let text = '';
+        items.forEach(function(item) {
+          let line = item.time;
+          if (item.endTime) line += '-' + item.endTime;
+          line += ' ' + item.title;
+          if (item.desc) line += ' - ' + item.desc.replace(/\n/g, ' ');
+          if (item.tag) line += ' [' + item.tag + ']';
+          text += line + '\n';
+        });
+        ta.value = text.trim();
+      } catch(e) {}
+    }
+  }
+}
+
+function importItinerary(storageKey) {
+  const text = document.getElementById('importText').value.trim();
+  if (!text) { showToast('请输入行程文本', 'error'); return; }
+  const items = parseItinerary(text);
+  if (items.length === 0) { showToast('未能解析出行程项，请检查格式', 'error'); return; }
+  localStorage.setItem(storageKey, JSON.stringify(items));
+  renderTimeline(storageKey);
+  document.getElementById('importSection').style.display = 'none';
+  showToast('行程已保存！🎉 共 ' + items.length + ' 项');
+}
+
+function clearItinerary(storageKey) {
+  if (!confirm('确定要清空当天的行程吗？')) return;
+  localStorage.removeItem(storageKey);
+  localStorage.removeItem(storageKey + '-photos');
+  renderTimeline(storageKey);
+  showToast('行程已清空');
+}
+
+function loadExample() {
+  const example = '09:00 早餐 - 酒店附近便利店 [美食]\n'
+    + '10:00 浅草寺 [景点] 参观东京最古老的寺庙，仲见世通商业街\n'
+    + '12:30 午餐：雷门附近寿司店 [美食]\n'
+    + '14:00-15:30 涩谷十字路口 [景点] 游览世界最著名的十字路口\n'
+    + '16:00 购物：涩谷109 [购物] 潮流服饰购物\n'
+    + '18:30 晚餐 - 新宿居酒屋 [美食] 体验日式居酒屋文化\n'
+    + '20:30 东京都厅观景台 [景点] 免费欣赏东京夜景';
+  document.getElementById('importText').value = example;
+  showToast('示例已加载，点击保存');
+}
+
+// ============================================
+// 主渲染入口
+// ============================================
+function render() {
+  const route = getRoute();
+  renderBreadcrumb(route);
+  if (route.view === 'home') renderHome();
+  else if (route.view === 'city') renderCity(route.city);
+  else if (route.view === 'day') renderDay(route.city, route.date);
+  window.scrollTo(0, 0);
+}
+
+// 初始化
+render();
+  </script>
+</body>
+</html>
